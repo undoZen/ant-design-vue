@@ -174,6 +174,12 @@ export default {
     type: 'Feedback',
     title: 'Spin',
   },
+  result: {
+    category: 'Components',
+    subtitle: '结果',
+    type: 'Feedback',
+    title: 'Result',
+  },
   switch: {
     category: 'Components',
     subtitle: '开关',
@@ -358,4 +364,10 @@ export default {
     type: 'Data Display',
     title: 'Statistic',
   },
+  descriptions: {
+    category: 'Components',
+    subtitle: '描述列表',
+    type: 'Data Display',
+    title: 'Descriptions'
+  }
 };

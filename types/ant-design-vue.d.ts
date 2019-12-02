@@ -62,6 +62,8 @@ import { TimePicker } from './time-picker';
 import { Timeline } from './timeline/timeline';
 import { Tooltip } from './tootip/tooltip';
 import { Upload } from './upload';
+import { Result } from './result';
+import { Descriptions } from './descriptions/descriptions'
 
 /**
  * Install all ant-design-vue components into Vue.
@@ -132,4 +134,6 @@ export {
   Upload,
   Drawer,
   Skeleton,
+  Result,
+  Descriptions,
 };
