@@ -1,3 +1,5 @@
+官方发布 1.5.0 之前，先使用这个自己 merge 了 Descriptions/Result 组件的版本
+
 <p align="center">
   <a href="https://vue.ant.design/">
     <img width="200" src="https://qn.antdv.com/logo.png">
