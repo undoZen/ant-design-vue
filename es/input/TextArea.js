@@ -168,7 +168,7 @@ export default {
         customizePrefixCls = this.prefixCls,
         disabled = this.disabled;
 
-    var otherProps = omit(this.$props, ['prefixCls', 'autosize', 'type', 'value', 'defaultValue']);
+    var otherProps = omit(this.$props, ['prefixCls', 'autosize', 'type', 'value', 'defaultValue', 'lazy']);
     var getPrefixCls = this.configProvider.getPrefixCls;
     var prefixCls = getPrefixCls('input', customizePrefixCls);
 

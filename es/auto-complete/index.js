@@ -73,7 +73,9 @@ var AutoComplete = {
       var $slots = this.$slots;
 
       var children = filterEmpty($slots['default']);
-      var element = children.length ? children[0] : h(Input);
+      var element = children.length ? children[0] : h(Input, {
+        attrs: { lazy: false }
+      });
       return h(InputElement, [element]);
     },
     focus: function focus() {

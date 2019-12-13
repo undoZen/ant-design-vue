@@ -7,7 +7,7 @@ import contains from '../_util/Dom/contains';
 import LazyRenderBox from './LazyRenderBox';
 import BaseMixin from '../_util/BaseMixin';
 import getTransitionProps from '../_util/getTransitionProps';
-import switchScrollingEffect from '../_util/switchScrollingEffect';
+import _switchScrollingEffect from '../_util/switchScrollingEffect';
 import getDialogPropTypes from './IDialogPropTypes';
 var IDialogPropTypes = getDialogPropTypes();
 
@@ -49,6 +49,8 @@ function offset(el) {
   return pos;
 }
 
+var cacheOverflow = {};
+
 export default {
   mixins: [BaseMixin],
   props: initDefaultProps(IDialogPropTypes, {
@@ -61,7 +63,8 @@ export default {
     prefixCls: 'rc-dialog',
     getOpenCount: function getOpenCount() {
       return null;
-    }
+    },
+    focusTriggerAfterClose: true
   }),
   data: function data() {
     return {
@@ -88,16 +91,6 @@ export default {
     }
   },
 
-  // private inTransition: boolean;
-  // private titleId: string;
-  // private openTime: number;
-  // private lastOutSideFocusNode: HTMLElement | null;
-  // private wrap: HTMLElement;
-  // private dialog: any;
-  // private sentinel: HTMLElement;
-  // private bodyIsOverflowing: boolean;
-  // private scrollbarWidth: number;
-
   beforeMount: function beforeMount() {
     this.inTransition = false;
     this.titleId = 'rcDialogTitle' + uuid++;
@@ -118,7 +111,7 @@ export default {
         getOpenCount = this.getOpenCount;
 
     if ((visible || this.inTransition) && !getOpenCount()) {
-      this.removeScrollingEffect();
+      this.switchScrollingEffect();
     }
     clearTimeout(this.timeoutId);
   },
@@ -130,12 +123,15 @@ export default {
     },
     updatedCallback: function updatedCallback(visible) {
       var mousePosition = this.mousePosition;
+      var mask = this.mask,
+          focusTriggerAfterClose = this.focusTriggerAfterClose;
+
       if (this.visible) {
         // first show
         if (!visible) {
           this.openTime = Date.now();
           // this.lastOutSideFocusNode = document.activeElement
-          this.addScrollingEffect();
+          this.switchScrollingEffect();
           // this.$refs.wrap.focus()
           this.tryFocus();
           var dialogNode = this.$refs.dialog.$el;
@@ -148,7 +144,7 @@ export default {
         }
       } else if (visible) {
         this.inTransition = true;
-        if (this.mask && this.lastOutSideFocusNode) {
+        if (mask && this.lastOutSideFocusNode && focusTriggerAfterClose) {
           try {
             this.lastOutSideFocusNode.focus();
           } catch (e) {
@@ -177,7 +173,7 @@ export default {
         this.destroyPopup = true;
       }
       this.inTransition = false;
-      this.removeScrollingEffect();
+      this.switchScrollingEffect();
       if (afterClose) {
         afterClose();
       }
@@ -235,7 +231,8 @@ export default {
           tempFooter = this.footer,
           bodyStyle = this.bodyStyle,
           visible = this.visible,
-          bodyProps = this.bodyProps;
+          bodyProps = this.bodyProps,
+          forceRender = this.forceRender;
 
       var dest = {};
       if (width !== undefined) {
@@ -302,12 +299,13 @@ export default {
           }],
 
           key: 'dialog-element',
-          attrs: { role: 'document'
+          attrs: { role: 'document',
+
+            forceRender: forceRender
           },
           ref: 'dialog',
           style: style,
-          'class': cls,
-          on: {
+          'class': cls, on: {
             'mousedown': this.onDialogMouseDown
           }
         },
@@ -400,27 +398,49 @@ export default {
     //     document.body.style.paddingRight = `${this.scrollbarWidth}px`;
     //   }
     // },
-    addScrollingEffect: function addScrollingEffect() {
+    switchScrollingEffect: function switchScrollingEffect() {
       var getOpenCount = this.getOpenCount;
 
       var openCount = getOpenCount();
-      if (openCount !== 1) {
-        return;
+      if (openCount === 1) {
+        if (cacheOverflow.hasOwnProperty('overflowX')) {
+          return;
+        }
+        cacheOverflow = {
+          overflowX: document.body.style.overflowX,
+          overflowY: document.body.style.overflowY,
+          overflow: document.body.style.overflow
+        };
+        _switchScrollingEffect();
+        // Must be set after switchScrollingEffect
+        document.body.style.overflow = 'hidden';
+      } else if (!openCount) {
+        // IE browser doesn't merge overflow style, need to set it separately
+        // https://github.com/ant-design/ant-design/issues/19393
+        if (cacheOverflow.overflow !== undefined) {
+          document.body.style.overflow = cacheOverflow.overflow;
+        }
+        if (cacheOverflow.overflowX !== undefined) {
+          document.body.style.overflowX = cacheOverflow.overflowX;
+        }
+        if (cacheOverflow.overflowY !== undefined) {
+          document.body.style.overflowY = cacheOverflow.overflowY;
+        }
+        cacheOverflow = {};
+        _switchScrollingEffect(true);
       }
-      switchScrollingEffect();
-      document.body.style.overflow = 'hidden';
     },
-    removeScrollingEffect: function removeScrollingEffect() {
-      var getOpenCount = this.getOpenCount;
 
-      var openCount = getOpenCount();
-      if (openCount !== 0) {
-        return;
-      }
-      document.body.style.overflow = '';
-      switchScrollingEffect(true);
-      // this.resetAdjustments();
-    },
+    // removeScrollingEffect() {
+    //   const { getOpenCount } = this;
+    //   const openCount = getOpenCount();
+    //   if (openCount !== 0) {
+    //     return;
+    //   }
+    //   document.body.style.overflow = '';
+    //   switchScrollingEffect(true);
+    //   // this.resetAdjustments();
+    // },
     close: function close(e) {
       this.__emit('close', e);
     }
@@ -440,26 +460,30 @@ export default {
     if (visible) {
       style.display = null;
     }
-    return h('div', [this.getMaskElement(), h(
+    return h(
       'div',
-      _mergeJSXProps([{
-        attrs: {
-          tabIndex: -1,
+      { 'class': prefixCls + '-root' },
+      [this.getMaskElement(), h(
+        'div',
+        _mergeJSXProps([{
+          attrs: {
+            tabIndex: -1,
 
-          role: 'dialog',
-          'aria-labelledby': title ? this.titleId : null
-        },
-        on: {
-          'keydown': this.onKeydown,
-          'click': maskClosable ? this.onMaskClick : noop,
-          'mouseup': maskClosable ? this.onMaskMouseUp : noop
-        },
+            role: 'dialog',
+            'aria-labelledby': title ? this.titleId : null
+          },
+          on: {
+            'keydown': this.onKeydown,
+            'click': maskClosable ? this.onMaskClick : noop,
+            'mouseup': maskClosable ? this.onMaskMouseUp : noop
+          },
 
-        'class': prefixCls + '-wrap ' + (wrapClassName || ''),
-        ref: 'wrap',
-        style: style
-      }, wrapProps]),
-      [this.getDialogElement()]
-    )]);
+          'class': prefixCls + '-wrap ' + (wrapClassName || ''),
+          ref: 'wrap',
+          style: style
+        }, wrapProps]),
+        [this.getDialogElement()]
+      )]
+    );
   }
 };

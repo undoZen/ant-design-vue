@@ -629,7 +629,7 @@ export default {
       };
     }
 
-    var trigger = cloneElement(child, newChildProps);
+    this.trigger = cloneElement(child, newChildProps);
 
     return h(ContainerRender, {
       attrs: {
@@ -643,7 +643,7 @@ export default {
           var renderComponent = _ref.renderComponent;
 
           _this7.renderComponent = renderComponent;
-          return trigger;
+          return _this7.trigger;
         }
       }
     });

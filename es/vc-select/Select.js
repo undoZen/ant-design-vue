@@ -1,5 +1,5 @@
-import _defineProperty from 'babel-runtime/helpers/defineProperty';
 import _mergeJSXProps from 'babel-helper-vue-jsx-merge-props';
+import _defineProperty from 'babel-runtime/helpers/defineProperty';
 import _extends from 'babel-runtime/helpers/extends';
 import KeyCode from '../_util/KeyCode';
 import PropTypes from '../_util/vue-types';
@@ -609,7 +609,7 @@ var Select = {
       if (value.length) {
         hidden = true;
       }
-      if (isCombobox(props) && value.length === 1 && state._value && !state._value[0]) {
+      if (!state._mirrorInputValue && isCombobox(props) && value.length === 1 && state._value && !state._value[0]) {
         hidden = false;
       }
       var placeholder = props.placeholder;
@@ -729,16 +729,9 @@ var Select = {
           _mirrorInputValue = _$data._mirrorInputValue;
 
       var attrs = getAttrs(this);
-      var defaultInput = h('input', _mergeJSXProps([{
-        directives: [{
-          name: 'ant-input'
-        }]
-      }, {
-        attrs: {
-          id: attrs.id,
-          autoComplete: 'off'
-        }
-      }]));
+      var defaultInput = h('input', {
+        attrs: { id: attrs.id, autoComplete: 'off' }
+      });
 
       var inputElement = props.getInputElement ? props.getInputElement() : defaultInput;
       var inputCls = classnames(getClass(inputElement), _defineProperty({}, props.prefixCls + '-search__field', true));
@@ -768,6 +761,8 @@ var Select = {
           directives: [{
             name: 'ant-ref',
             value: this.saveInputRef
+          }, {
+            name: 'ant-input'
           }],
           on: {
             input: this.onInputChange,

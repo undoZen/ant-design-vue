@@ -2,7 +2,8 @@ import PropTypes from '../_util/vue-types';
 
 var ILazyRenderBoxPropTypes = {
   visible: PropTypes.bool,
-  hiddenClassName: PropTypes.string
+  hiddenClassName: PropTypes.string,
+  forceRender: PropTypes.bool
 };
 
 export default {

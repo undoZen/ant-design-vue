@@ -44,8 +44,6 @@ export default {
         $slots = _$slots === undefined ? {} : _$slots,
         _$listeners = this.$listeners,
         $listeners = _$listeners === undefined ? {} : _$listeners,
-        _$props = this.$props,
-        $props = _$props === undefined ? {} : _$props,
         _$attrs = this.$attrs,
         $attrs = _$attrs === undefined ? {} : _$attrs;
 

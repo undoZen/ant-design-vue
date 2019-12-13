@@ -6,7 +6,6 @@ import TextArea from './TextArea';
 import omit from 'omit.js';
 import inputProps from './inputProps';
 import { hasProp, getComponentFromProp } from '../_util/props-util';
-import { isIE, isIE9 } from '../_util/env';
 import { ConfigConsumerProps } from '../config-provider';
 import Icon from '../icon';
 
@@ -129,7 +128,7 @@ export default {
           value = _e$target.value,
           composing = _e$target.composing;
 
-      if (composing || this.stateValue === value) return;
+      if (composing && this.lazy) return;
       this.setValue(value, e);
     },
     renderClearIcon: function renderClearIcon(prefixCls) {
@@ -236,7 +235,7 @@ export default {
     renderInput: function renderInput(prefixCls) {
       var h = this.$createElement;
 
-      var otherProps = omit(this.$props, ['prefixCls', 'addonBefore', 'addonAfter', 'prefix', 'suffix', 'allowClear', 'value', 'defaultValue']);
+      var otherProps = omit(this.$props, ['prefixCls', 'addonBefore', 'addonAfter', 'prefix', 'suffix', 'allowClear', 'value', 'defaultValue', 'lazy']);
       var stateValue = this.stateValue,
           getInputClassName = this.getInputClassName,
           handleKeyDown = this.handleKeyDown,
